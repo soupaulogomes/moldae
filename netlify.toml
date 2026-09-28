@@ -5,6 +5,8 @@ publish = ".next"
 [build.environment]
 NODE_VERSION = "22"
 PNPM_FLAGS = "--shamefully-hoist"
+# Identificadores públicos, não credenciais. O scanner continua ativo para todos os segredos.
+SECRETS_SCAN_OMIT_KEYS = "IMAGE_STORAGE,SUPABASE_STORAGE_BUCKET"
 
 [context.deploy-preview]
 command = "echo 'Previews desativados: configure um banco separado antes de habilitar.' && exit 1"
