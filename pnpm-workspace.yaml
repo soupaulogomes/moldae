@@ -1,0 +1,3 @@
+allowBuilds:
+  embedded-postgres: true
+  '@embedded-postgres/linux-x64': true

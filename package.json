@@ -1,0 +1,31 @@
+{
+  "name": "atelier3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "test": "node --test tests/*.test.mjs",
+    "db:migrate": "node --env-file=.local/admin.env scripts/migrate.mjs",
+    "local": "node scripts/local.mjs",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs",
+    "security:setup": "node scripts/provision-security.mjs",
+    "platform": "node scripts/platform.mjs"
+  },
+  "dependencies": {
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "pg": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "embedded-postgres": "18.4.0-beta.17"
+  }
+}

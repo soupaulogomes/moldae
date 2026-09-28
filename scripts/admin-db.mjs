@@ -1,0 +1,3 @@
+import pg from 'pg';import {readFile} from 'node:fs/promises';
+export async function adminDb(){let url=process.env.ADMIN_DATABASE_URL;if(!url){const config=await readFile('.local/admin.env','utf8');url=config.split('\n').find(l=>l.startsWith('ADMIN_DATABASE_URL='))?.slice(19);}if(!url)throw new Error('Configure ADMIN_DATABASE_URL para executar uma operação administrativa.');const db=new pg.Client({connectionString:url});await db.connect();return db;}
+export const backupTables=['tenants','app_users','memberships','materials','equipment','quotes','jobs','sales','entries','movements','maintenance_plans','maintenance_logs','equipment_hour_logs','uploads','audit_events','integration_connections'];

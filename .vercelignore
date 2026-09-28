@@ -1,0 +1,10 @@
+.git/
+.local/
+.env
+.env.*
+!.env.example
+tests/
+scripts/
+compose.yaml
+iniciar.sh
+*.log

@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {equipmentHours,depreciation,maintenanceStatus} from '../lib/maintenance.mjs';
+const e={used_hours:80,prior_hours:20,life_hours:1000,purchase_value:2000};
+const plan={active:true,baseline_hours:50,baseline_on:'2026-09-01',interval_hours:100,interval_days:30,warn_hours:10,warn_days:5};
+test('Depreciação soma horas históricas e de produção, com residual nunca negativo',()=>{assert.equal(equipmentHours(e),100);assert.deepEqual(depreciation(e),{hours:100,rate:2,usedValue:200,remainingValue:1800,remainingHours:900,percent:10});const d=depreciation({...e,used_hours:2000});assert.equal(d.remainingValue,0);assert.equal(d.usedValue,2000);assert.equal(d.percent,100);});
+test('Aviso usa o primeiro limite atingido e respeita antecedência',()=>{assert.equal(maintenanceStatus(plan,e,'2026-09-25').state,'ok');assert.equal(maintenanceStatus(plan,e,'2026-09-26').state,'soon');assert.equal(maintenanceStatus(plan,e,'2026-10-01').state,'due');assert.equal(maintenanceStatus(plan,e,'2026-10-02').state,'overdue');assert.equal(maintenanceStatus(plan,{...e,used_hours:130},'2026-09-10').state,'due');assert.equal(maintenanceStatus(plan,{...e,used_hours:131},'2026-09-10').state,'overdue');});
+test('Tarefas por data, por horas e pausadas funcionam sem limite alternativo',()=>{assert.equal(maintenanceStatus({...plan,interval_hours:null},e,'2026-10-01').remainingHours,null);assert.equal(maintenanceStatus({...plan,interval_days:null},e,'2026-12-01').state,'ok');assert.equal(maintenanceStatus({...plan,active:false},{...e,used_hours:9999},'2026-12-01').state,'paused');});

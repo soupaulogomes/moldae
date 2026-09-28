@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {calculate} from '../lib/calculate.mjs';
+import {summarize} from '../lib/finance.mjs';
+const base={quantity:2,grams:100,kgPrice:100,hours:2,watts:200,kwh:1,machineValue:1000,lifeHours:1000,laborMinutes:30,hourRate:20,extras:2,markupPercent:50};
+test('Fórmulas fornecidas pelo usuário e preço por lote',()=>{const r=calculate(base);assert.equal(r.material,10);assert.equal(r.energy,.4);assert.equal(r.depreciation,2);assert.equal(r.labor,10);assert.equal(r.totalCost,24.4);assert.ok(Math.abs(r.price-36.6)<1e-9);assert.equal(r.unitPrice,r.price/2);});
+test('Taxas sobre venda preservam o lucro previsto',()=>{const r=calculate({...base,feePercent:10,taxPercent:5,fixedFee:3});assert.ok(Math.abs(r.price-r.fees-r.totalCost-r.totalCost*.5)<1e-9);});
+test('Reserva é adicional ao custo, não probabilidade',()=>{const r=calculate({...base,failurePercent:10});assert.ok(Math.abs(r.reserve-2.44)<1e-9);});
+test('Rejeita valores impossíveis',()=>{for(const patch of [{quantity:0},{quantity:1.5},{grams:-1},{lifeHours:0},{feePercent:100},{kwh:Infinity}])assert.throws(()=>calculate({...base,...patch}));});
+test('Compra de estoque, investimento e aporte não distorcem o lucro',()=>{const d={sales:[{amount:100,fees:10,cost:30,sold_on:'2026-09-26',paid_on:'2026-09-26'}],jobs:[{status:'falha',actual_cost:5,finished_at:'2026-09-26'}],entries:[{kind:'receita',amount:100,occurred_on:'2026-09-26'},{kind:'estoque',amount:40,occurred_on:'2026-09-26'},{kind:'investimento',amount:1000,occurred_on:'2026-09-26'},{kind:'aporte',amount:1000,occurred_on:'2026-09-26'},{kind:'despesa',amount:10,occurred_on:'2026-09-26'},{kind:'despesa',amount:8,affects_result:true,occurred_on:'2026-09-26'}],materials:[],equipment:[]};const r=summarize(d);assert.equal(r.profit,47);assert.equal(r.cash,42);assert.equal(summarize(d,'2026-10-01').profit,0);});
+
+test('Desconto recalcula lucro, margem e recuperação da máquina',()=>{const original=calculate(base);const r=calculate({...base,discountValue:10,discountType:'percent'});assert.ok(Math.abs(r.price-original.price*.9)<1e-9);assert.equal(r.unitProfit,r.profit/2);assert.equal(r.roiPieces,Math.ceil(base.machineValue/r.unitProfit));const loss=calculate({...base,discountValue:100,discountType:'percent'});assert.ok(loss.profit<0);assert.equal(loss.roiPieces,null);assert.throws(()=>calculate({...base,discountValue:500,discountType:'fixed'}));});
+test('Perda avulsa reduz resultado sem duplicar saída de caixa',()=>{const r=summarize({sales:[],jobs:[],materials:[],equipment:[],entries:[],movements:[{reason:'Perda avulsa',quantity:-50,unit_cost:.1,created_at:'2026-09-26'}]});assert.equal(r.loss,5);assert.equal(r.profit,-5);assert.equal(r.cash,0);});

@@ -1,0 +1,16 @@
+node_modules
+.next
+.env*
+!.env.example
+
+.local/
+.next-production/
+
+# Artefatos locais, credenciais e implantação
+.vercel/
+coverage/
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
