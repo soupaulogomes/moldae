@@ -31,3 +31,11 @@ Enviar somente os arquivos versionados desta pasta de código. .env, .local, Pos
 ## Planos e validação
 
 Usar somente planos gratuitos. Reconferir limites e termos no provisionamento. Nenhum serviço pago está autorizado. Publicar o código no GitHub não publica a aplicação nem migra o banco; as pendências acima precisam ser resolvidas antes do uso na nuvem.
+
+## Preparação Netlify
+
+netlify.toml usa pnpm build e .next. Builds locais continuam em .next-production. Deploy previews e branches estão bloqueados até configurar banco isolado. Variáveis de produção: DATABASE_URL (papel moldae_app, pooler transacional), DATABASE_CA_CERT (certificado PEM oficial), APP_ORIGIN (HTTPS exato), IMAGE_STORAGE=supabase, SUPABASE_URL, SUPABASE_STORAGE_BUCKET=moldae-images e SUPABASE_STORAGE_KEY (somente servidor).
+
+Imagens passam pela autorização da aplicação e são armazenadas em bucket privado, sob tenant_id/nome. Nenhuma chave de Storage vai para o navegador. O modo Netlify recusa armazenamento local e conexão sem certificado. O backup local existente contém arquivos locais; backups da nuvem precisam também exportar o bucket privado.
+
+Status: bucket privado criado e cópia inicial do banco validada; deploy e teste real de Storage ainda pendentes. A aplicação local continua no banco local. Sincronizar alterações antes do corte.

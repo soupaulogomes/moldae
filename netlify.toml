@@ -1,0 +1,13 @@
+[build]
+command = "pnpm build"
+publish = ".next"
+
+[build.environment]
+NODE_VERSION = "22"
+PNPM_FLAGS = "--shamefully-hoist"
+
+[context.deploy-preview]
+command = "echo 'Previews desativados: configure um banco separado antes de habilitar.' && exit 1"
+
+[context.branch-deploy]
+command = "echo 'Branches desativadas: configure um banco separado antes de habilitar.' && exit 1"
