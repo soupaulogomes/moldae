@@ -7,7 +7,7 @@ function getItems(result,input){
  const energyKwh=v('watts')*v('hours')/1000;
  const base=result.totalCost-result.reserve;
  return [
- {id:'material',label:'Filamento',value:result.material,color:'#14967c',quantity:number(v('grams'))+' g',formula:money(v('kgPrice'))+' / kg ÷ 1.000 × '+number(v('grams'))+' g',note:'Material previsto para todo o lote, incluindo suportes e purga informados no peso.'},
+ {id:'material',label:'Filamento',value:result.material,color:'#14967c',quantity:number(v('grams'))+' g',formula:input.materials?.length?input.materials.map(m=>(m.name||'Filamento')+': '+money(m.kgPrice)+' / kg ÷ 1.000 × '+number(Number(m.grams))+' g').join(' + '):money(v('kgPrice'))+' / kg ÷ 1.000 × '+number(v('grams'))+' g',note:'Material previsto para todo o lote, incluindo suportes e purga informados no peso.'},
  {id:'energy',label:'Energia elétrica',value:result.energy,color:'#c58913',quantity:number(energyKwh)+' kWh',formula:number(v('watts'))+' W × '+number(v('hours'))+' h ÷ 1.000 × '+money(v('kwh'))+' / kWh',note:'Consumo estimado pela potência média e pelo tempo de impressão.'},
  {id:'depreciation',label:'Amortização',value:result.depreciation,color:'#8c62c5',quantity:number(v('hours'))+' h de máquina',formula:money(v('machineValue'))+' ÷ '+number(v('lifeHours'))+' h × '+number(v('hours'))+' h',note:'Parcela do valor da impressora distribuída pelas horas de vida útil estimadas. Não é um pagamento deste lote.'},
  {id:'labor',label:'Trabalho manual',value:result.labor,color:'#347fc4',quantity:number(v('laborMinutes'))+' min',formula:number(v('laborMinutes'))+' min ÷ 60 × '+money(v('hourRate'))+' / h',note:'Tempo informado de preparação, acabamento e embalagem, separado do tempo automático da impressora.'},
