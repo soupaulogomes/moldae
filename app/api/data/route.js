@@ -17,7 +17,7 @@ export async function POST(req){
  if(!validOrigin(req))return Response.json({error:'Origem inválida.'},{status:403});
  try{const session=await requireSession(req,true);if(Number(req.headers.get('content-length'))>1048576)throw new AuthError('Pedido muito grande.',413);const body=await readJson(req,1048576); const {action,...v}=body;
  const result=await tenantTransaction(session,async c=>{
- const key=randomUUID();
+ const key=action==='deleteQuote'?id(v.quoteId):randomUUID();
  if(action==='material'||action==='materialUpdate') {
  const unit=v.unit;if(!['g','un'].includes(unit))throw new Error('Unidade inválida.');
  const trim=x=>String(x??'').trim().slice(0,200);
@@ -48,6 +48,7 @@ export async function POST(req){
  else if(action==='consume') {const quantity=number(v.quantity,'quantidade',{positive:true});if(!['Consumo de insumo','Perda avulsa'].includes(v.reason))throw new Error('Motivo inválido.');const m=(await c.query('SELECT * FROM materials WHERE id=$1 FOR UPDATE',[id(v.materialId)])).rows[0];if(m?.cost_pending)throw new Error('Informe o custo inicial antes de registrar consumo ou perda.');if(!m||Number(m.quantity)<quantity)throw new Error('Estoque insuficiente.');await c.query('UPDATE materials SET quantity=quantity-$1 WHERE id=$2',[quantity,m.id]);await c.query('INSERT INTO movements(id,material_id,quantity,unit_cost,reason,created_at) VALUES($1,$2,$3,$4,$5,$6::date)',[key,m.id,-quantity,m.unit_cost,v.reason,date(v.date)]);}
  else if(action==='equipment') {const kind=v.kind;if(!['impressora','ferramenta'].includes(kind))throw new Error('Tipo inválido.');const value=number(v.purchaseValue,'valor');await c.query('INSERT INTO equipment(id,name,kind,purchase_value,watts,life_hours) VALUES($1,$2,$3,$4,$5,$6)',[key,text(v.name,'nome'),kind,value,number(v.watts,'potência'),number(v.lifeHours,'vida útil',{positive:true})]);if(v.recordPayment===true)await entry(c,'investimento','Compra: '+v.name,value,date(v.date),key);}
  else if(action==='quote'){const result=calculate(v.input);await c.query('INSERT INTO quotes(id,name,customer,input,result,description) VALUES($1,$2,$3,$4,$5,$6)',[key,text(v.name,'projeto'),String(v.customer??'').slice(0,200),JSON.stringify(v.input),JSON.stringify(result),String(v.description??'').slice(0,5000)]);}
+ else if(action==='deleteQuote'){const quote=(await c.query('SELECT id FROM quotes WHERE id=$1 FOR UPDATE',[key])).rows[0];if(!quote)throw new AuthError('Orçamento não encontrado.',404);if((await c.query('SELECT 1 FROM jobs WHERE quote_id=$1 LIMIT 1',[key])).rows.length)throw new AuthError('Este orçamento está vinculado à produção e não pode ser excluído.',409);await c.query('DELETE FROM quotes WHERE id=$1',[key]);}
  else if(action==='job'){const material=(await c.query('SELECT unit FROM materials WHERE id=$1',[id(v.materialId)])).rows[0];if(!material||material.unit!=='g')throw new Error('Selecione um material em gramas.');await c.query('INSERT INTO jobs(id,quote_id,material_id,equipment_id) VALUES($1,$2,$3,$4)',[key,id(v.quoteId),id(v.materialId),v.equipmentId?id(v.equipmentId):null]);}
  else if(action==='finish') {
  const job=(await c.query('SELECT * FROM jobs WHERE id=$1 FOR UPDATE',[id(v.jobId)])).rows[0];if(!job||job.status!=='fila')throw new Error('Produção já finalizada ou não encontrada.');
